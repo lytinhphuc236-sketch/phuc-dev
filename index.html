@@ -133,7 +133,8 @@ let V={flt:'all',fol:null,q:'',cur:null},busy=false,ctl=null,edit=null,files=[];
 const C=()=>Object.assign({},D,S.cfg);
 const KEY=()=>{try{return localStorage.getItem('pd4_key')||''}catch(e){return ''}};
 const GQ='https://api.groq.com/openai/v1',STATIC=()=>location.protocol==='file:'||/github\.io$/.test(location.hostname);
-const ep=p=>{const k=KEY();return k?[GQ+(p==='chat'?'/chat/completions':'/models'),{Authorization:'Bearer '+k}]:['/api/'+p,{}]};
+const CODE=()=>{try{return localStorage.getItem('pd4_code')||''}catch(e){return ''}};
+const ep=p=>{const k=KEY();return k?[GQ+(p==='chat'?'/chat/completions':'/models'),{Authorization:'Bearer '+k}]:['/api/'+p,{'X-Access-Code':CODE()}]};
 const cur=()=>S.chats.find(c=>c.id===V.cur);
 const save=()=>{try{localStorage.setItem('pd4',JSON.stringify(S))}catch(e){toast('Không lưu được: bộ nhớ trình duyệt đầy')}};
 function toast(t){const e=h('div',{textContent:t});$('#toast').append(e);setTimeout(()=>e.remove(),3000)}
@@ -217,7 +218,7 @@ async function gen(){const c=cur();busy=true;setGo();const a={r:'a',c:'',t:Date.
  const msgs=[{role:'system',content:SYS}].concat(c.msgs.slice(0,-1).filter(m=>!m.e).map(m=>({role:m.r==='u'?'user':'assistant',content:m.r==='u'?m.c+(m.f||[]).map(f=>'\n\n[Tệp '+f.n+']\n'+f.t).join(''):m.c})));
  try{if(!KEY()&&STATIC())throw new Error('Hãy mở Cài đặt và dán Groq API key của bạn (lấy miễn phí tại console.groq.com).');
   const [u,h0]=ep('chat');const r=await fetch(u,{method:'POST',headers:Object.assign({'Content-Type':'application/json'},h0),body:JSON.stringify({model:C().model,messages:msgs,stream:true})});
-  if(!r.ok){let m='Lỗi '+r.status;try{const j=await r.json();m+=': '+((j.error&&j.error.message)||'')}catch(e){}throw new Error(m)}
+  if(r.status===401&&!KEY()){const v=await ask('Nhập mã truy cập',CODE());if(v){try{localStorage.setItem('pd4_code',v)}catch(x){}}throw new Error('Cần mã truy cập. Đã lưu, bấm Thử lại.')}if(!r.ok){let m='Lỗi '+r.status;try{const j=await r.json();m+=': '+((j.error&&j.error.message)||'')}catch(e){}throw new Error(m)}
   const hd=l=>{if(!l.startsWith('data:'))return;const d=l.slice(5).trim();if(d==='[DONE]')return;try{const t=JSON.parse(d).choices[0].delta.content;if(t){a.c+=t;if(!raf)raf=requestAnimationFrame(paint)}}catch(e){}};
   if(r.body&&r.body.getReader){const rd=r.body.getReader(),dc=new TextDecoder();ctl.reader=rd;let bf='';while(true){const{done,value}=await rd.read();if(done||ctl.stop)break;bf+=dc.decode(value,{stream:true});const ls=bf.split('\n');bf=ls.pop();ls.forEach(hd)}}
   else(await r.text()).split('\n').forEach(hd)

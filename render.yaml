@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: phuc-dev
+    runtime: python
+    plan: free
+    buildCommand: pip install -r requirements.txt
+    startCommand: python server.py
+    healthCheckPath: /healthz
+    envVars:
+      - key: GROQ_API_KEY
+        sync: false
+      - key: ACCESS_CODE
+        sync: false
