@@ -334,8 +334,8 @@ function apply(){const c=C(),r=document.documentElement,dk=c.theme==='dark'||(c.
  $('#chat').style.background=c.scene&&c.scene!=='off'?'transparent':(c.wp===-1&&cu?'url("'+cu+'") center/cover':c.wp===-2?'var(--bg)':(WP[c.wp]||WP[0])[1]);
  startBackdrop(c.scene||'aurora',!!c.anim)}
 const setc=(k,v)=>{S.cfg[k]=v;save();apply()};
-function drawWps(){const w=$('#wps');w.innerHTML='';const c=C();WP.forEach((p,i)=>w.append(h('button',{type:'button',textContent:p[0],st:'background:'+p[1],className:c.wp===i?'on':'',on:{click:()=>{setc('wp',i);drawWps()}}})));
- w.append(h('button',{type:'button',textContent:'Màu thuần',st:'background:var(--bg);color:var(--ink);text-shadow:none',className:c.wp===-2?'on':'',on:{click:()=>{setc('wp',-2);drawWps()}}}))}
+function drawWps(){const w=$('#wps');w.innerHTML='';const c=C();WP.forEach((p,i)=>w.append(h('button',{type:'button',textContent:p[0],st:'background:'+p[1],className:c.wp===i?'on':'',on:{click:()=>{setc('wp',i);setc('scene','off');$('#s-scene').value='off';drawWps()}}})));
+ w.append(h('button',{type:'button',textContent:'Màu thuần',st:'background:var(--bg);color:var(--ink);text-shadow:none',className:c.wp===-2?'on':'',on:{click:()=>{setc('wp',-2);setc('scene','off');$('#s-scene').value='off';drawWps()}}}))}
 function fill(){const c=C();$('#s-theme').value=c.theme;$('#s-ac').value=c.ac;$('#s-font').value=c.font;$('#s-width').value=c.width;$('#s-enter').checked=c.enter;$('#s-anim').checked=c.anim;$('#s-dim').value=c.dim;$('#s-blur').value=c.blur;$('#s-scene').value=c.scene||'aurora';$('#s-frame').checked=c.frame!==false;$('#s-border').value=c.borderStyle||'neon';$('#s-edge').value=c.borderColor||'#4fffe5';$('#s-edge-width').value=c.borderWidth==null?2:c.borderWidth;$('#s-glow').value=c.glow==null?.58:c.glow;$('#s-radius').value=c.radius==null?22:c.radius;$('#s-key').value=KEY();const sm=$('#s-mode');if(sm)sm.value=getMode();drawAcct();drawWps()}
 function openSet(){fill();$('#sd').showModal()}
 function openGd(){fill();$('#gd').showModal()}
@@ -343,7 +343,7 @@ function openGd(){fill();$('#gd').showModal()}
 const _sm=$('#s-mode');if(_sm)_sm.onchange=()=>{setMode(_sm.value);toast('Chế độ: '+(MODE_LABEL[_sm.value]||_sm.value))};
 $('#s-key').addEventListener('change',e=>{try{localStorage.setItem('pd4_key',e.target.value.trim())}catch(x){}models();toast('Đã lưu key')});
 $('#wpf').onchange=e=>{const f=e.target.files[0];if(!f)return;const im=new Image();im.onload=()=>{const s=Math.min(1,1600/Math.max(im.width,im.height)),cv=document.createElement('canvas');cv.width=im.width*s;cv.height=im.height*s;cv.getContext('2d').drawImage(im,0,0,cv.width,cv.height);
- try{localStorage.setItem('pd4_wp',cv.toDataURL('image/jpeg',.8));setc('wp',-1);drawWps()}catch(x){toast('Ảnh quá lớn để lưu')}};im.onerror=()=>toast('Không đọc được ảnh');im.src=URL.createObjectURL(f)};
+ try{localStorage.setItem('pd4_wp',cv.toDataURL('image/jpeg',.8));setc('wp',-1);setc('scene','off');$('#s-scene').value='off';drawWps()}catch(x){toast('Ảnh quá lớn để lưu')}};im.onerror=()=>toast('Không đọc được ảnh');im.src=URL.createObjectURL(f)};
 $('#rst').onclick=async()=>{if(await ask('Đặt lại giao diện về mặc định?',0,false)){S.cfg={};try{localStorage.removeItem('pd4_wp')}catch(e){}save();apply();fill();toast('Đã đặt lại')}};
 const openSetClose=()=>$('#sd').close();$('#sx').onclick=openSetClose;$('#set').onclick=openSet;$('#gbtn').onclick=openGd;$('#gx').onclick=()=>$('#gd').close();
 $('#adbtn').onclick=openAdmin;$('#ad-x1').onclick=()=>$('#ad').close();$('#ad-x2').onclick=()=>$('#ad').close();
