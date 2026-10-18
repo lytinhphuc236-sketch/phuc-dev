@@ -12,7 +12,7 @@ PROV = {  # tên: (địa chỉ API, tên biến môi trường chứa key)
 }
 COHERE_MODELS = ["command-a-03-2025", "command-r-plus-08-2024", "command-r-08-2024", "command-r7b-12-2024"]
 ESP_TOKEN = os.environ.get("ESP_TOKEN", "")  # mật khẩu để ESP32 nhận việc
-JOBS, ESP = {}, {"seen": 0}  # hàng đợi tệp cho ESP32
+JOBS, ESP = {}, {"seen": 0, "status": {}}  # hàng đợi tệp + status WiFi từ ESP32
 SECRET = os.environ.get("SESSION_SECRET", "")  # chuỗi ngẫu nhiên dài để ký phiên đăng nhập
 OA = {p: {"id": os.environ.get(p.upper() + "_CLIENT_ID", ""), "sec": os.environ.get(p.upper() + "_CLIENT_SECRET", "")} for p in ("google", "github")}
 LOGIN_ON = bool(SECRET and any(v["id"] and v["sec"] for v in OA.values()))
@@ -169,6 +169,14 @@ class H(BaseHTTPRequestHandler):
                 else:
                     self.send_response(204); self.end_headers()
             return True
+        if self.path == "/api/esp-status":
+            if self._ok():
+                now = time.time()
+                st = dict(ESP.get("status") or {})
+                st["online"] = (now - ESP.get("seen", 0)) < 25
+                st["last_seen"] = int(ESP.get("seen", 0))
+                self._send(200, json.dumps(st))
+            return True
         m = re.match(r"^/api/files/(\w+)$", self.path)
         if not m: return False
         if self._ok():
@@ -197,6 +205,19 @@ class H(BaseHTTPRequestHandler):
                     i = uuid.uuid4().hex[:12]
                     JOBS[i] = {"id": i, "name": name, "src": text, "t": now, "status": "pending", "text": "", "error": ""}
                     self._send(200, json.dumps({"esp": True, "id": i}))
+            return True
+        if self.path == "/esp/status":
+            n = int(self.headers.get("Content-Length", 0))
+            raw = self.rfile.read(n)
+            if self._esp():
+                try:
+                    d = json.loads(raw.decode("utf-8", "replace"))
+                    if not isinstance(d, dict): raise ValueError("not dict")
+                    ESP["status"] = d
+                    ESP["seen"] = time.time()
+                    self._send(200, "{}")
+                except Exception as e:
+                    self._json(400, str(e)[:100])
             return True
         m = re.match(r"^/esp/result/(\w+)$", self.path)
         if not m: return False
