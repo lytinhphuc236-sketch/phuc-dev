@@ -230,7 +230,7 @@ html[data-border="gradient"] #web-frame{border-color:transparent;background:line
   <div class="settings-title">Chuyển cảnh động</div>
   <label>Phong cảnh<select id="s-scene"><option value="aurora">Cực quang neon</option><option value="sky">Bầu trời sao</option><option value="forest">Rừng đom đóm</option><option value="ocean">Đại dương</option><option value="animals">Thế giới động vật</option><option value="off">Tắt nền động</option></select></label>
   <p class="setting-note">Nền chuyển động tự vẽ bằng Canvas, không cần tải video/ảnh nền ngoài.</p>
-  <div class="settings-title">Viền web neon</div>
+  
   <label>Bật viền quanh web<input type="checkbox" id="s-frame"></label>
   <label>Kiểu viền<select id="s-border"><option value="neon">Neon phát sáng</option><option value="gradient">Neon chuyển màu</option><option value="soft">Viền dịu</option><option value="off">Tắt viền</option></select></label>
   <label>Màu viền<input type="color" id="s-edge"></label>
@@ -715,6 +715,14 @@ apply();draw();models();loadAuth();if(!KEY()&&STATIC())setTimeout(openSet,400);
 .wrow{display:flex;gap:8px;padding:10px 0 16px}.wrow textarea{flex:1;border:1px solid #cfd6e8;border-radius:12px;padding:10px 12px;resize:none;background:#fff;color:#18213a}
 .wpg{max-width:640px;margin:0 auto;padding:22px 18px}.wpg label{display:flex;flex-direction:column;gap:6px;margin:0 0 14px;font-weight:600}.wpg input,.wpg textarea{border:1px solid #cfd6e8;border-radius:10px;padding:9px 12px;background:#fff;color:#18213a;font-weight:400}.wpg textarea{min-height:60vh;width:100%}
 .wli{display:flex;justify-content:space-between;gap:12px;padding:9px 0;border-bottom:1px solid #dde2f0}.wli small{color:#7a849f;white-space:nowrap}
+#web-frame{display:none!important}
+#gd label:has(#s-frame,#s-border,#s-edge,#s-edge-width,#s-glow){display:none}
+.wtp{border-top:1px solid #cfd6e8;background:#fff;height:min(40%,320px);display:flex;flex-direction:column;flex-shrink:0}
+.wtp .whd{border-bottom:1px solid #e3e8f4}.wtp select{max-width:200px;padding:4px 8px;font-size:13px}
+.wtb2{flex:1;overflow:auto;padding:6px 12px 12px;font-size:14px}.wtb2 pre{white-space:pre-wrap;margin:0}
+.wst{font-style:normal;font-weight:600;margin-left:8px}.wst.ok{color:#14833b}.wst.err{color:#c62828}.wst.fail{color:#9a6700}.wst.run{color:#7a849f}
+.wtab{border-collapse:collapse;width:100%}.wtab th,.wtab td{border-bottom:1px solid #e3e8f4;padding:6px 8px;text-align:left;vertical-align:top}.wtab th{color:#7a849f;font-weight:600;font-size:13px}
+.wln{width:auto;min-width:34px;padding:0 6px;height:24px;font:12px var(--mono)}
 @media(max-width:760px){#ws.on{flex-direction:column}.wl{width:100%;max-height:40vh}.wx{grid-template-columns:1fr;grid-template-rows:34% 1fr}.wtr{border-right:0;border-bottom:1px solid #dde2f0}}
 </style>
 <script>
@@ -749,21 +757,42 @@ function R(){
  else if(v==='vis')b=`<div class="wpg">${list(W.vis)}</div>`;
  else if(v==='note')b=`<div class="wpg"><textarea id="wnote" placeholder="Ghi chú của bạn…">${E(W.note)}</textarea></div>`;
  else b=`<div class="wpg"><label>Tên GitHub của bạn<input id="wgh" value="${E(W.gh)}" placeholder="vd: phuc-dev"></label><label>GitHub token (bỏ trống nếu Render đã có GITHUB_TOKEN)<input id="wtk" type="password" value="${E(W.tk)}" placeholder="ghp_..." autocomplete="off"></label><div style="display:flex;gap:8px;flex-wrap:wrap"><button class="wk" data-a="sync">Đồng bộ repo</button><button class="wk" data-a="stat">Thống kê & token</button></div></div>`;
- ws.innerHTML=`<aside class="wl"><div class="wb0">Phuc Dev</div>${N.map(([k,t,i])=>`<button class="wn${(k==='new'?v==='home':v===k)?' on':''}" data-a="${k==='new'?'new':'nav'}" data-v="${k}"><span>${i}</span>${t}</button>`).join('')}<div class="wh">Dự án</div>${W.p.length?W.p.map(p=>`<button class="wp${P&&P.id===p.id&&v==='proj'?' on':''}" data-a="p" data-v="${E(p.id)}">${E(p.name)}${p.gh?'<small>GitHub</small>':''}</button>`).join(''):'<p class="wmt">Chưa có dự án</p>'}</aside><section class="wm"><div class="wt">${v==='ai'?'<select id="wmod" aria-label="Chọn AI"></select>':''}<b>${v==='proj'?E(P.name):v==='ai'?'':T[v]}</b><div class="wtb"><button class="${v==='ai'?'on':''}" data-a="ai">AI</button><button class="${v==='proj'?'on':''}" data-a="edit">Edit</button><button data-a="exit">Exit</button></div></div><div class="wbd">${b}</div></section>`;
- const wm=$('#wmod');if(wm){wm.innerHTML=$('#mod').innerHTML;if(!wm.options.length)wm.append(h('option',{value:C().model,textContent:C().model.replace('::',' / ')}));wm.value=C().model}
+ ws.innerHTML=`<aside class="wl"><div class="wb0">Phuc Dev</div>${N.map(([k,t,i])=>`<button class="wn${(k==='new'?v==='home':v===k)?' on':''}" data-a="${k==='new'?'new':'nav'}" data-v="${k}"><span>${i}</span>${t}</button>`).join('')}<div class="wh">Dự án</div>${W.p.length?W.p.map(p=>`<button class="wp${P&&P.id===p.id&&v==='proj'?' on':''}" data-a="p" data-v="${E(p.id)}">${E(p.name)}${p.gh?'<small>GitHub</small>':''}</button>`).join(''):'<p class="wmt">Chưa có dự án</p>'}</aside><section class="wm"><div class="wt">${v==='ai'?'<select id="wmod" aria-label="Chọn AI"></select>':''}<b>${v==='proj'?E(P.name):v==='ai'?'':T[v]}</b><div class="wtb"><button data-a="test">Test</button><button class="${v==='ai'?'on':''}" data-a="ai">AI</button><button class="${v==='proj'?'on':''}" data-a="edit">Edit</button><button data-a="exit">Exit</button></div></div><div class="wbd">${b}</div>${TP&&v==='proj'?'<div class="wtp" id="wtp">'+tpInner()+'</div>':''}</section>`;
+ const wm=$('#wmod');if(wm)fs(wm,C().model);const wt=$('#wtm');if(wt)fs(wt,W.tm||C().model)
  const m=$('#wmsg');if(m)m.scrollTop=m.scrollHeight}
+const CHK='Bạn là Phuc Check, AI chuyên soi lỗi code. Nhận tệp có đánh số dòng ("12: ..."). Tìm lỗi thật: cú pháp, biến chưa khai báo, sai kiểu, logic sai rõ ràng, thiếu import hoặc ngoặc. Không chê phong cách. Chỉ trả JSON thuần, không markdown: [{"line":số dòng,"vi":"lỗi gì (ngắn)","why":"vì sao lỗi","fix":"cách sửa"}]. Không có lỗi thì trả []. Viết tiếng Việt.';
+let TP=null;
+const fs=(el,val)=>{el.innerHTML=$('#mod').innerHTML;if(!el.options.length)el.append(h('option',{value:val,textContent:val.replace('::',' / ')}));el.value=val};
+function stat(name,t){const o=[],x=(name.split('.').pop()||'').toLowerCase();
+ if(x==='json'){try{JSON.parse(t)}catch(e){const m=/position (\d+)/.exec(e.message);o.push({line:m?t.slice(0,+m[1]).split('\n').length:0,vi:'JSON sai cú pháp',why:e.message,fix:'Kiểm tra dấu phẩy, ngoặc và dấu nháy kép'})}}
+ else if(x==='js'){try{new Function(t)}catch(e){o.push({line:0,vi:'JS sai cú pháp',why:e.message,fix:''})}}
+ return o}
+const tpInner=()=>`<div class="whd"><span>Test: ${E(TP.file)}<em class="wst ${TP.s}">${TP.s==='run'?'Đang kiểm tra…':TP.s==='ok'?'✓ Không có lỗi — chạy bình thường':TP.s==='fail'?'⚠ Không kiểm tra được':'✗ Có '+TP.items.length+' lỗi'}</em></span><span><select id="wtm" aria-label="AI kiểm lỗi"></select> <button class="wi" data-a="tx" title="Đóng">×</button></span></div><div class="wtb2">${TP.s==='err'?'<table class="wtab"><tr><th>Dòng</th><th>Lỗi</th><th>Vì sao &amp; cách sửa</th></tr>'+TP.items.map(x=>`<tr><td>${x.line?'<button class="wi wln" data-a="gl" data-v="'+x.line+'">'+x.line+'</button>':'—'}</td><td>${E(x.vi||'')}</td><td>${E(x.why||'')}${x.fix?'<br><b>Sửa:</b> '+E(x.fix):''}</td></tr>`).join('')+'</table>':TP.s==='fail'?'<pre>'+E(TP.raw)+'</pre>':''}</div>`;
+const updTp=()=>{const el=$('#wtp');if(el){el.innerHTML=tpInner();const w=$('#wtm');if(w)fs(w,W.tm||C().model)}else R()};
 ws.onclick=e=>{const t=e.target.closest('[data-a]');if(t&&A[t.dataset.a])A[t.dataset.a](t.dataset.v)};
 A.nav=k=>{v=k;R()};A.ai=()=>{v='ai';R()};A.edit=()=>{v=P?'proj':'home';R()};A.exit=()=>ws.classList.remove('on');A.p=openP;A.f=openF;A.save=save;A.stat=()=>openAdmin();
 A.new=async()=>{const n=String(await ask('Tên dự án mới','')||'').trim();if(!n)return;const p={id:'l'+Date.now(),name:n,files:{'README.md':'# '+n+'\n'},paths:['README.md'],sha:{}};W.p.push(p);log('hist','Tạo dự án '+n);await openP(p.id)};
 A.nf=async()=>{const n=String(await ask('Tên tệp (vd: src/main.py)','')||'').trim();if(!n||P.files[n]!==undefined)return;P.files[n]='';P.paths.push(n);log('hist','Tạo tệp '+P.name+'/'+n);openF(n)};
 A.del=async()=>{if(!await ask('Xóa dự án "'+P.name+'"?',0,false))return;W.p=W.p.filter(p=>p!==P);log('hist','Xóa dự án '+P.name);P=F=null;v='home';R()};
 A.sync=async()=>{await sync();R();toast('Đã đồng bộ')};
+A.tx=()=>{TP=null;R()};
+A.gl=n=>{const ta=$('#wsed');if(!ta)return;const L=ta.value.split('\n');n=Math.min(+n,L.length);const s=L.slice(0,n-1).join('\n').length+(n>1?1:0);ta.focus();ta.setSelectionRange(s,s+L[n-1].length);ta.scrollTop=Math.max(0,(n-4)*22.3)};
+A.test=async()=>{if(v!=='proj'||!F){toast('Mở một tệp trong dự án rồi bấm Test');return}if(TP&&TP.s==='run')return;
+ const t=P.files[F]??'',name=F,st=stat(name,t);TP={file:name,s:'run',items:[],raw:''};R();let items=null,raw='';
+ try{const sel=W.tm||C().model,i=sel.indexOf('::'),[u,hd]=ep('chat',sel.slice(0,i)),num=t.split('\n').map((l,k)=>(k+1)+': '+l).join('\n').slice(0,14000);
+  const r=await fetch(u,{method:'POST',headers:Object.assign({'Content-Type':'application/json'},hd),body:JSON.stringify({model:sel.slice(i+2),max_tokens:4000,temperature:0,messages:[{role:'system',content:CHK},{role:'user',content:'Tệp: '+name+(st.length?'\nTrình kiểm cú pháp báo: '+st.map(x=>x.why).join('; '):'')+'\n\n'+num}]})});
+  const j=await r.json();raw=(j.choices&&j.choices[0].message.content)||'';if(!raw)throw new Error((j.error&&j.error.message)||r.status);
+  items=JSON.parse(raw.slice(raw.indexOf('['),raw.lastIndexOf(']')+1));if(!Array.isArray(items))items=null}catch(e){items=null;raw=raw||String(e.message||e)}
+ if(!items||(!items.length&&st.length))items=st.length?st:items;
+ if(!items){TP.s='fail';TP.raw=('AI kiểm lỗi không trả lời đúng: '+raw).slice(0,400)}
+ else{TP.items=items.map(x=>Object.assign({},x,{line:+x.line||0}));TP.s=items.length?'err':'ok'}
+ log('hist','Test '+P.name+'/'+name+': '+(TP.s==='ok'?'ổn':TP.s==='fail'?'không kiểm được':TP.items.length+' lỗi'));updTp()};
 A.ask=async()=>{const q=$('#wq'),t=q.value.trim();if(!t||busy)return;busy=true;chat.push({role:'user',content:t});R();
  const ctx=P?'\nDự án đang mở: '+P.name+'.'+(F?' Tệp '+F+':\n'+(P.files[F]||'').slice(0,8000):''):'';
  try{const[pv,m]=mp(),[u,hd]=ep('chat',pv);const r=await fetch(u,{method:'POST',headers:Object.assign({'Content-Type':'application/json'},hd),body:JSON.stringify({model:m,max_tokens:8000,messages:[{role:'system',content:SYS+ctx}].concat(chat)})});const j=await r.json();chat.push({role:'assistant',content:(j.choices&&j.choices[0].message.content)||'Lỗi: '+((j.error&&j.error.message)||r.status)})}catch(e){chat.push({role:'assistant',content:'Lỗi: '+e.message})}
  busy=false;R()};
 ws.addEventListener('input',e=>{const i=e.target.id;if(i==='wsed')P.files[F]=e.target.value;else if(i==='wnote'){W.note=e.target.value;sv()}});
-ws.addEventListener('change',e=>{const i=e.target.id;if(i==='wgh'){W.gh=e.target.value.trim();sv()}else if(i==='wtk'){W.tk=e.target.value.trim();sv()}else if(i==='wmod'){setc('model',e.target.value);const m=$('#mod');if(m)m.value=e.target.value}});
+ws.addEventListener('change',e=>{const i=e.target.id;if(i==='wgh'){W.gh=e.target.value.trim();sv()}else if(i==='wtk'){W.tk=e.target.value.trim();sv()}else if(i==='wtm'){W.tm=e.target.value;sv()}else if(i==='wmod'){setc('model',e.target.value);const m=$('#mod');if(m)m.value=e.target.value}});
 ws.addEventListener('keydown',e=>{const i=e.target.id;if(i==='wq'&&e.key==='Enter'&&!e.shiftKey){e.preventDefault();A.ask()}else if(i==='wsed'&&e.key==='Tab'){e.preventDefault();e.target.setRangeText('  ',e.target.selectionStart,e.target.selectionEnd,'end');P.files[F]=e.target.value}else if((e.ctrlKey||e.metaKey)&&e.key==='s'&&F&&v==='proj'){e.preventDefault();save()}});
 function openWs(){ws.classList.add('on');R();sync().then(()=>{const a=document.activeElement;if(ws.classList.contains('on')&&!(a&&/TEXTAREA|INPUT/.test(a.tagName)))R()})}
 $('#adbtn').onclick=()=>isAdmin()?openWs():openAdmin();
