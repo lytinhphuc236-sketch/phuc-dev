@@ -17,6 +17,8 @@ SECRET = os.environ.get("SESSION_SECRET", "")  # chuỗi ngẫu nhiên dài đ�
 OA = {p: {"id": os.environ.get(p.upper() + "_CLIENT_ID", ""), "sec": os.environ.get(p.upper() + "_CLIENT_SECRET", "")} for p in ("google", "github")}
 LOGIN_ON = bool(SECRET and any(v["id"] and v["sec"] for v in OA.values()))
 ALLOWED = {x.strip().lower() for x in os.environ.get("ALLOWED_USERS", "").split(",") if x.strip()}  # email hoặc tên GitHub; trống = ai đăng nhập cũng dùng được
+GH_TOKEN = os.environ.get("GITHUB_TOKEN", "")  # token GitHub nằm ở server, không xuống trình duyệt
+ADMIN_PASS = os.environ.get("ADMIN_PASS", "")  # mật khẩu vào Workspace
 ACCESS = os.environ.get("ACCESS_CODE", "")  # tùy chọn: mã truy cập để người lạ không xài hết key
 HERE = os.path.dirname(os.path.abspath(__file__))
 
@@ -154,6 +156,20 @@ class H(BaseHTTPRequestHandler):
         if not hmac.compare_digest(self.headers.get("X-Esp-Token", "").encode(), ESP_TOKEN.encode()): self._json(401, "Sai token ESP"); return False
         return True
 
+    def _gh(self, meth):  # cầu nối GitHub cho admin: /api/gh/<đường dẫn GitHub API>
+        if not self.path.startswith("/api/gh/"): return False
+        n = int(self.headers.get("Content-Length", 0)); data = self.rfile.read(n) if n else None
+        if not (GH_TOKEN and ADMIN_PASS): self._json(503, "Server chưa cấu hình GITHUB_TOKEN / ADMIN_PASS"); return True
+        if not hmac.compare_digest(self.headers.get("X-Admin-Pass", "").encode(), ADMIN_PASS.encode()): self._json(401, "Sai mật khẩu admin"); return True
+        p = self.path[8:]
+        if ".." in p or not re.match(r"^(ping$|user/repos|repos/[\w.-]+/[\w.-]+/(git/trees|contents))", p): self._json(403, "Đường dẫn không được phép"); return True
+        if p == "ping": self._send(200, "{}"); return True
+        req = urllib.request.Request("https://api.github.com/" + p, data=data, method=meth, headers={"Authorization": "Bearer " + GH_TOKEN, "Accept": "application/vnd.github+json", "Content-Type": "application/json", "User-Agent": "PhucDev/4.0"})
+        try: r = urllib.request.urlopen(req, timeout=30); code = r.status
+        except urllib.error.HTTPError as e: r = e; code = e.code
+        except Exception as e: self._json(502, str(e)); return True
+        self._send(code, r.read()); return True
+
     def _files_get(self):
         if self.path == "/esp/next":  # ESP32 hỏi việc (cũng là tín hiệu "ESP32 đang online")
             if self._esp():
@@ -238,7 +254,7 @@ class H(BaseHTTPRequestHandler):
         return True
 
     def do_GET(self):
-        if self._auth_get() or self._files_get(): return
+        if self._auth_get() or self._files_get() or self._gh("GET"): return
         rt = self._route()
         if rt and rt[1] == "models":
             if not self._ok(): return
@@ -266,6 +282,9 @@ class H(BaseHTTPRequestHandler):
             if self._ok(): self._up(rt[0], "/chat/completions", body)
         else:
             self.send_response(404); self.end_headers()
+
+    def do_PUT(self):
+        if not self._gh("PUT"): self.send_response(404); self.end_headers()
 
     def log_message(self, *a): pass
 
